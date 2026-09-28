@@ -58,6 +58,27 @@ function A:GetClientBuildInfo()
  local a,b,c,d=GetBuildInfo(); return tostring(a or "?"),tostring(b or "?"),tostring(c or "?"),tonumber(d)
 end
 
+A.afterCombat=A.afterCombat or {}
+
+function A:AfterCombat(key,fn)
+ if type(InCombatLockdown)=="function" and InCombatLockdown() then
+   self.afterCombat[key or tostring(fn)]=fn
+   return false
+ end
+ local ok,err=pcall(fn)
+ if not ok then self:Print(err) end
+ return ok
+end
+
+function A:FlushAfterCombat()
+ local queued=self.afterCombat
+ self.afterCombat={}
+ for _,fn in pairs(queued or {}) do
+   local ok,err=pcall(fn)
+   if not ok then self:Print(err) end
+ end
+end
+
 function A:InitializeDB()
  if self.InitializeProfileStorage then
    self:InitializeProfileStorage(defaults,"ComfyFramesDB")
@@ -106,6 +127,7 @@ end
 local event=CreateFrame("Frame")
 event:RegisterEvent("ADDON_LOADED")
 event:RegisterEvent("PLAYER_LOGIN")
+event:RegisterEvent("PLAYER_REGEN_ENABLED")
 event:SetScript("OnEvent",function(_,ev,arg1)
  if ev=="ADDON_LOADED" and arg1==A.name then
    A:InitializeDB()
@@ -115,5 +137,7 @@ event:SetScript("OnEvent",function(_,ev,arg1)
    A:Print(A:T("LOADED").." v"..A.version)
  elseif ev=="PLAYER_LOGIN" then
    if A.ApplyAll then A:ApplyAll() end
+ elseif ev=="PLAYER_REGEN_ENABLED" then
+   A:FlushAfterCombat()
  end
 end)
