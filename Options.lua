@@ -62,6 +62,32 @@ end
 
 function A:ShowOptions() if not self.optionsFrame then self:InitializeOptions() end self.optionsFrame:Show(); self.optionsFrame:Raise(); self:RefreshOptions() end
 
+function A:RegisterBlizzardSettingsCategory()
+    if self.settingsCategory then return end
+    if not (Settings and Settings.RegisterCanvasLayoutCategory and Settings.RegisterAddOnCategory) then return end
+
+    local canvas=CreateFrame("Frame")
+    local isDE=type(GetLocale)=="function" and GetLocale()=="deDE"
+
+    local title=canvas:CreateFontString(nil,"ARTWORK","GameFontNormalLarge")
+    title:SetPoint("TOPLEFT",16,-16)
+    title:SetText("ComfyFrames")
+
+    local desc=canvas:CreateFontString(nil,"ARTWORK","GameFontHighlight")
+    desc:SetPoint("TOPLEFT",title,"BOTTOMLEFT",0,-12)
+    desc:SetWidth(520)
+    desc:SetJustifyH("LEFT")
+    desc:SetText(isDE and "Öffnet das vollständige ComfyFrames-Einstellungsfenster der Comfy Suite." or "Opens the full ComfyFrames settings window for the Comfy Suite.")
+
+    Button(canvas,isDE and "Einstellungen öffnen" or "Open settings",16,-90,220,function()
+        A:ShowOptions()
+    end)
+
+    local category=Settings.RegisterCanvasLayoutCategory(canvas,"ComfyFrames")
+    Settings.RegisterAddOnCategory(category)
+    self.settingsCategory=category
+end
+
 function A:InitializeOptions()
  if self.optionsFrame then return end
  local f=CreateFrame("Frame","ComfyFramesOptions",UIParent,"BasicFrameTemplateWithInset"); f:SetSize(940,690); f:SetPoint("CENTER",0,20); f:SetFrameStrata("HIGH"); f:SetMovable(true); f:EnableMouse(true); f:RegisterForDrag("LeftButton")
