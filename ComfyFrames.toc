@@ -3,7 +3,7 @@
 ## Notes: Modular player, target, focus, pet, party and raid unit frames for WoW Forever.
 ## Notes-deDE: Modulare Spieler-, Ziel-, Fokus-, Begleiter-, Gruppen- und Raidfenster für WoW Forever.
 ## Author: TheRealDoubleG
-## Version: 0.1
+## Version: 0.2
 ## SavedVariables: ComfyFramesDB
 ## X-ComfySuite: true
 ## X-ComfyUI: 2
