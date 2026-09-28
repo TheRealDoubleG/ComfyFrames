@@ -45,7 +45,7 @@ function A:CreateMover(key,cfg,label)
 end
 
 function A:CreateUnitButton(unit,key,cfg,parentMover)
- local f=CreateFrame("Button","ComfyFrame_"..key,parentMover or UIParent,"SecureUnitButtonTemplate,BackdropTemplate")
+ local f=CreateFrame("Button","ComfyFrame_"..key,UIParent,"SecureUnitButtonTemplate,BackdropTemplate")
  f.unit=unit; f.key=key; f.cfg=cfg
  f:SetAttribute("unit",unit); f:SetAttribute("type1","target"); f:RegisterForClicks("AnyUp")
  f:SetBackdrop({edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1})
@@ -80,11 +80,33 @@ function A:RefreshSingleLayout(key)
  local frame=self.unitFrames[key]; if not frame then return end
  local cfg=self.db.units[key]
  frame.cfg=cfg
- local mover=frame:GetParent()
- mover.cfg=cfg; mover:SetSize(cfg.width,cfg.height); mover:ClearAllPoints(); mover:SetPoint("CENTER",UIParent,"CENTER",cfg.x,cfg.y)
+ local mover=self.singleMovers and self.singleMovers[key]
+ if InCombatLockdown() then
+   self:AfterCombat("single:"..key,function() A:RefreshSingleLayout(key) end)
+   self:UpdateUnitFrame(frame)
+   return
+ end
+ if mover then
+   mover.cfg=cfg; mover:SetSize(cfg.width,cfg.height); mover:ClearAllPoints(); mover:SetPoint("CENTER",UIParent,"CENTER",cfg.x,cfg.y)
+   frame:ClearAllPoints(); frame:SetAllPoints(mover)
+ end
  self:ApplyFrameStyle(frame,cfg)
- frame:SetShown(self.db.enabled and cfg.enabled and (self.db.testMode or key=="player" or true))
- if not self.db.testMode and key~="player" and type(RegisterUnitWatch)=="function" then pcall(RegisterUnitWatch,frame) end
+
+ if self.db.testMode then
+   self:ApplyTestToFrame(frame,true,1)
+ elseif self.db.enabled and cfg.enabled then
+   frame.preview=nil
+   if key=="player" then
+     frame:Show()
+   elseif type(RegisterUnitWatch)=="function" then
+     pcall(RegisterUnitWatch,frame)
+   elseif UnitExists then
+     local ok,exists=pcall(UnitExists,frame.unit); frame:SetShown(ok and exists and true or false)
+   end
+ else
+   if key~="player" and type(UnregisterUnitWatch)=="function" then pcall(UnregisterUnitWatch,frame) end
+   frame:Hide()
+ end
  self:UpdateUnitFrame(frame)
 end
 
@@ -135,7 +157,7 @@ function A:InitializeFrames()
    local mover=self:CreateMover("unit_"..key,cfg,self:T(string.upper(key)))
    self.singleMovers[key]=mover
    local frame=self:CreateUnitButton(key,key,cfg,mover)
-   frame:SetAllPoints(mover)
+   frame:ClearAllPoints(); frame:SetAllPoints(mover)
  end
 
  local events=CreateFrame("Frame")
