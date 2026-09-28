@@ -1,8 +1,14 @@
 # ComfyFrames
 
-**Version 0.1 – Beta**
+**Version 0.2 – Beta**
 
 Modular unit frames for **World of Warcraft: Forever**.
+
+## 0.2 Beta
+
+- Secure unit frames are now anchored to independent mover handles instead of being children of hidden movers.
+- Protected layout changes are queued until combat ends.
+- Party/raid range checks use a throttled 0.5-second ticker when available.
 
 ## 0.1 Beta
 
