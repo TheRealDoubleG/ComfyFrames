@@ -5,7 +5,7 @@ A.partyFrames=A.partyFrames or {}
 A.raidFrames=A.raidFrames or {}
 
 local function CreateGroupFrame(unit,key,cfg,parent,idx,kind)
- local f=CreateFrame("Button","ComfyFrame_"..key,parent,"SecureUnitButtonTemplate,BackdropTemplate")
+ local f=CreateFrame("Button","ComfyFrame_"..key,UIParent,"SecureUnitButtonTemplate,BackdropTemplate")
  f.unit=unit; f.key=key; f.cfg=cfg; f.groupKind=kind
  f:SetAttribute("unit",unit); f:SetAttribute("type1","target"); f:RegisterForClicks("AnyUp")
  f:SetBackdrop({edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1})
@@ -31,6 +31,7 @@ end
 
 function A:LayoutParty()
  if not self.partyMover then return end
+ if InCombatLockdown() then self:AfterCombat("layout:party",function() A:LayoutParty() end); return end
  local cfg=self.db.party
  self.partyMover.cfg=cfg; self.partyMover:SetSize(cfg.width,cfg.height*5+cfg.spacing*4)
  self.partyMover:ClearAllPoints(); self.partyMover:SetPoint("TOPLEFT",UIParent,"CENTER",cfg.x,cfg.y)
@@ -43,6 +44,7 @@ end
 
 function A:LayoutRaid()
  if not self.raidMover then return end
+ if InCombatLockdown() then self:AfterCombat("layout:raid",function() A:LayoutRaid() end); return end
  local cfg=self.db.raid
  local cols=math.max(1,math.min(8,tonumber(cfg.columns) or 5))
  local rows=math.ceil(40/cols)
@@ -97,32 +99,66 @@ function A:InitializeGroups()
 
  self:LayoutParty(); self:LayoutRaid()
 
- local rangeFrame=CreateFrame("Frame"); local acc=0
- rangeFrame:SetScript("OnUpdate",function(_,elapsed)
-   acc=acc+(tonumber(elapsed) or 0)
-   if acc>=0.5 then acc=0; A:UpdateRange() end
- end)
- self.rangeFrame=rangeFrame
+ if C_Timer and type(C_Timer.NewTicker)=="function" then
+   self.rangeTicker=C_Timer.NewTicker(0.5,function() A:UpdateRange() end)
+ else
+   local rangeFrame=CreateFrame("Frame"); local acc=0
+   rangeFrame:SetScript("OnUpdate",function(_,elapsed)
+     acc=acc+(tonumber(elapsed) or 0)
+     if acc>=0.5 then acc=0; A:UpdateRange() end
+   end)
+   self.rangeFrame=rangeFrame
+ end
 end
 
 function A:ApplyAll()
  if not self.db then return end
+
+ if InCombatLockdown() then
+   self:AfterCombat("applyAll",function() A:ApplyAll() end)
+   for _,f in pairs(self.unitFrames or {}) do self:UpdateUnitFrame(f) end
+   for _,f in ipairs(self.partyFrames or {}) do self:UpdateUnitFrame(f) end
+   for _,f in ipairs(self.raidFrames or {}) do self:UpdateUnitFrame(f) end
+   self:UpdateRange()
+   return
+ end
+
  for key,_ in pairs(self.db.units) do self:RefreshSingleLayout(key) end
  self:LayoutParty(); self:LayoutRaid()
 
  local partyOn=self.db.enabled and self.db.party.enabled
  for i,f in ipairs(self.partyFrames or {}) do
    local should=partyOn and (i~=1 or self.db.party.includePlayer)
-   if self.db.testMode then self:ApplyTestToFrame(f,should,i)
-   elseif not should and not InCombatLockdown() then f:Hide() end
-   f.cfg=self.db.party; self:UpdateUnitFrame(f)
+   f.cfg=self.db.party
+   self:ApplyFrameStyle(f,self.db.party)
+   if self.db.testMode then
+     self:ApplyTestToFrame(f,should,i)
+   elseif should then
+     f.preview=nil
+     if type(RegisterUnitWatch)=="function" then pcall(RegisterUnitWatch,f)
+     elseif UnitExists then local ok,exists=pcall(UnitExists,f.unit); f:SetShown(ok and exists and true or false) end
+   else
+     if type(UnregisterUnitWatch)=="function" then pcall(UnregisterUnitWatch,f) end
+     f:Hide()
+   end
+   self:UpdateUnitFrame(f)
  end
 
  local raidOn=self.db.enabled and self.db.raid.enabled
  for i,f in ipairs(self.raidFrames or {}) do
-   if self.db.testMode then self:ApplyTestToFrame(f,raidOn,i)
-   elseif not raidOn and not InCombatLockdown() then f:Hide() end
-   f.cfg=self.db.raid; self:UpdateUnitFrame(f)
+   f.cfg=self.db.raid
+   self:ApplyFrameStyle(f,self.db.raid)
+   if self.db.testMode then
+     self:ApplyTestToFrame(f,raidOn,i)
+   elseif raidOn then
+     f.preview=nil
+     if type(RegisterUnitWatch)=="function" then pcall(RegisterUnitWatch,f)
+     elseif UnitExists then local ok,exists=pcall(UnitExists,f.unit); f:SetShown(ok and exists and true or false) end
+   else
+     if type(UnregisterUnitWatch)=="function" then pcall(UnregisterUnitWatch,f) end
+     f:Hide()
+   end
+   self:UpdateUnitFrame(f)
  end
 
  self:SetUnlocked(self.db.unlocked)
