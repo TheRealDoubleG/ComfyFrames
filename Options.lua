@@ -82,12 +82,13 @@ function A:InitializeOptions()
  p=self.optionsPages[2]
  local keys={"player","target","targettarget","focus","pet"}
  for i,key in ipairs(keys) do
-  local y=-15-(i-1)*112; Label(p,A:T(string.upper(key)),20,y,"GameFontNormalLarge")
-  Check(p,A:T("ENABLE"),20,y-28,function() return A.db.units[key].enabled end,function(v) A.db.units[key].enabled=v end)
-  Check(p,A:T("SHOW_POWER"),180,y-28,function() return A.db.units[key].showPower end,function(v) A.db.units[key].showPower=v end)
-  Slider(p,A:T("WIDTH"),100,400,5,35,y-70,170,function() return A.db.units[key].width end,function(v) A.db.units[key].width=v end)
-  Slider(p,A:T("HEIGHT"),24,90,1,285,y-70,170,function() return A.db.units[key].height end,function(v) A.db.units[key].height=v end)
-  Slider(p,A:T("FONT_SIZE"),9,20,1,535,y-70,170,function() return A.db.units[key].fontSize end,function(v) A.db.units[key].fontSize=v end)
+  local unitKey=key
+  local y=-15-(i-1)*112; Label(p,A:T(string.upper(unitKey)),20,y,"GameFontNormalLarge")
+  Check(p,A:T("ENABLE"),20,y-28,function() return A.db.units[unitKey].enabled end,function(v) A.db.units[unitKey].enabled=v end)
+  Check(p,A:T("SHOW_POWER"),180,y-28,function() return A.db.units[unitKey].showPower end,function(v) A.db.units[unitKey].showPower=v end)
+  Slider(p,A:T("WIDTH"),100,400,5,35,y-70,170,function() return A.db.units[unitKey].width end,function(v) A.db.units[unitKey].width=v end)
+  Slider(p,A:T("HEIGHT"),24,90,1,285,y-70,170,function() return A.db.units[unitKey].height end,function(v) A.db.units[unitKey].height=v end)
+  Slider(p,A:T("FONT_SIZE"),9,20,1,535,y-70,170,function() return A.db.units[unitKey].fontSize end,function(v) A.db.units[unitKey].fontSize=v end)
  end
 
  p=self.optionsPages[3]
