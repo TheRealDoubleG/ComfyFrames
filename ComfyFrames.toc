@@ -1,0 +1,18 @@
+## Interface: 16001
+## Title: ComfyFrames
+## Notes: Modular player, target, focus, pet, party and raid unit frames for WoW Forever.
+## Notes-deDE: Modulare Spieler-, Ziel-, Fokus-, Begleiter-, Gruppen- und Raidfenster für WoW Forever.
+## Author: TheRealDoubleG
+## Version: 0.1
+## SavedVariables: ComfyFramesDB
+## X-ComfySuite: true
+## X-ComfyUI: 2
+## IconTexture: Interface\\Icons\\INV_Misc_GroupLooking
+
+Locale.lua
+Profiles.lua
+Core.lua
+Elements.lua
+Frames.lua
+Groups.lua
+Options.lua
