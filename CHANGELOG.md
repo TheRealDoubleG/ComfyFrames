@@ -1,5 +1,11 @@
 # ComfyFrames Changelog
 
+## 0.6 Beta – 13.10.2026
+- Fixed the Party/Raid range-fade error storm caused by comparing WoW Forever secret booleans returned by `UnitInRange`.
+- Secret range results are now passed to the native `SetAlphaFromBoolean` path when available instead of being compared in Lua.
+- Unknown or unsupported range states stay fully visible as a conservative fallback.
+- Kept the existing out-of-range fading feature instead of disabling it.
+
 ## 0.5 Beta – 04.10.2026
 - Added separate controls for Blizzard Player, Target and Target-of-Target frames.
 - Blizzard frame visibility changes are deferred until combat ends when required.
