@@ -1,6 +1,9 @@
 ComfyFrames = ComfyFrames or {}
 local A = ComfyFrames
 
+A.version = "0.6"
+A.buildDate = "13.10.2026"
+
 -- WoW Forever may return secret booleans from UnitInRange while addon
 -- execution is tainted. Secret booleans must never be compared or tested in
 -- Lua. Let the native frame API consume the value whenever possible.
