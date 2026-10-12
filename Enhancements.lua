@@ -1,9 +1,6 @@
 ComfyFrames = ComfyFrames or {}
 local A = ComfyFrames
 
-A.version = "0.4"
-A.buildDate = "04.10.2026"
-
 local function IsSecret(v)
     if type(issecretvalue) ~= "function" then return false end
     local ok, secret = pcall(issecretvalue, v)
@@ -32,71 +29,6 @@ function A:InitializeDB(...)
     if originalInitializeDB then result = originalInitializeDB(self, ...) end
     EnsureEnhancementDefaults()
     return result
-end
-
-local function SetRangeAlpha(frame, inRange, outAlpha)
-    if not frame then return end
-    outAlpha = math.max(0, math.min(1, tonumber(outAlpha) or 0.45))
-
-    if IsSecret(inRange) then
-        if type(frame.SetAlphaFromBoolean) == "function" then
-            local ok = pcall(frame.SetAlphaFromBoolean, frame, inRange, 1, outAlpha)
-            if ok then return end
-        end
-        frame:SetAlpha(1)
-        return
-    end
-
-    if type(inRange) == "boolean" then
-        if type(frame.SetAlphaFromBoolean) == "function" then
-            local ok = pcall(frame.SetAlphaFromBoolean, frame, inRange, 1, outAlpha)
-            if ok then return end
-        end
-        frame:SetAlpha(inRange and 1 or outAlpha)
-        return
-    end
-
-    frame:SetAlpha(1)
-end
-
-function A:UpdateRange()
-    if not self.db then return end
-    EnsureEnhancementDefaults()
-
-    if self.db.testMode then
-        for _, f in ipairs(self.partyFrames or {}) do f:SetAlpha(1) end
-        for _, f in ipairs(self.raidFrames or {}) do f:SetAlpha(1) end
-        return
-    end
-
-    local function one(frame, enabled, alphaPercent)
-        if not frame then return end
-        if not enabled or frame.unit == "player" or type(UnitInRange) ~= "function" then
-            frame:SetAlpha(1)
-            return
-        end
-
-        local ok, inRange, checked = pcall(UnitInRange, frame.unit)
-        if not ok then
-            frame:SetAlpha(1)
-            return
-        end
-
-        -- A non-secret checked=false means the client has no useful range result.
-        if checked ~= nil and not IsSecret(checked) and checked == false then
-            frame:SetAlpha(1)
-            return
-        end
-
-        SetRangeAlpha(frame, inRange, (tonumber(alphaPercent) or 45) / 100)
-    end
-
-    for _, f in ipairs(self.partyFrames or {}) do
-        one(f, self.db.party.rangeFade, self.db.party.rangeFadeAlpha)
-    end
-    for _, f in ipairs(self.raidFrames or {}) do
-        one(f, self.db.raid.rangeFade, self.db.raid.rangeFadeAlpha)
-    end
 end
 
 local function AbsorbEnabledForFrame(frame)

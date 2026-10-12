@@ -1,5 +1,13 @@
 # ComfyFrames Changelog
 
+## 0.7 Beta – 13.10.2026
+- Replaced the unsafe range comparison directly in Groups.lua; safety no longer depends on loading a later override.
+- Removed duplicate range implementations from Enhancements.lua and RangeSafe.lua. RangeSafe.lua remains a compatibility marker in the TOC/package.
+- Guard both UnitInRange results before Lua comparisons; unknown range or failed secret detection stays fully visible.
+- Preserve native secret-boolean fading and separate Party/Raid opacity settings.
+- Centralized version/build metadata in Core.lua and added Lua 5.1 range regression tests.
+- Verified the previous 0.6 suite ZIP did include RangeSafe.lua after Groups.lua. Its Groups.lua still contained the unsafe fallback; the reported client load/installation state could not be established from the error alone.
+
 ## 0.6 Beta – 13.10.2026
 - Fixed the Party/Raid range-fade error storm caused by comparing WoW Forever secret booleans returned by `UnitInRange`.
 - Secret range results are now passed to the native `SetAlphaFromBoolean` path when available instead of being compared in Lua.

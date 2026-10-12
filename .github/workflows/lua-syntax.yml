@@ -29,6 +29,9 @@ jobs:
             exit 1
           fi
 
+      - name: Test range safety and load order
+        run: lua5.1 tests/range.lua
+
       - name: Validate WoW Forever TOC
         shell: bash
         run: |

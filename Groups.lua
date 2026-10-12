@@ -68,19 +68,49 @@ function A:ApplyTestMode()
  self:ApplyAll()
 end
 
-function A:UpdateRange()
- if self.db.testMode then
-   for _,f in ipairs(self.partyFrames) do f:SetAlpha(1) end
-   for _,f in ipairs(self.raidFrames) do f:SetAlpha(1) end
+-- Treat failed/missing secret detection as unreadable, never as a public value.
+local function IsRangeValueReadable(value)
+ if type(issecretvalue) ~= "function" then return false end
+ local ok, secret = pcall(issecretvalue, value)
+ return ok and secret == false
+end
+
+local function UpdateFrameRange(frame, cfg, testMode)
+ if testMode or not cfg or not cfg.rangeFade or frame.unit == "player"
+     or type(UnitInRange) ~= "function" then
+   frame:SetAlpha(1)
    return
  end
- local function one(f,enabled)
-   if not enabled or f.unit=="player" or type(UnitInRange)~="function" then f:SetAlpha(1); return end
-   local ok,v=pcall(UnitInRange,f.unit)
-   if ok and v==false then f:SetAlpha(0.45) else f:SetAlpha(1) end
+
+ local ok, inRange, checkedRange = pcall(UnitInRange, frame.unit)
+ if not ok then frame:SetAlpha(1); return end
+
+ -- Guard BEFORE any comparison, including nil checks. Unknown range stays visible.
+ if not IsRangeValueReadable(checkedRange) then frame:SetAlpha(1); return end
+ if checkedRange == false then frame:SetAlpha(1); return end
+
+ local outAlpha = math.max(0, math.min(1, (tonumber(cfg.rangeFadeAlpha) or 45) / 100))
+ if not IsRangeValueReadable(inRange) then
+   -- Pass opaque booleans straight to the native API; do not branch on them.
+   if type(frame.SetAlphaFromBoolean) == "function" then
+     local applied = pcall(frame.SetAlphaFromBoolean, frame, inRange, 1, outAlpha)
+     if applied then return end
+   end
+   frame:SetAlpha(1)
+   return
  end
- for _,f in ipairs(self.partyFrames) do one(f,self.db.party.rangeFade) end
- for _,f in ipairs(self.raidFrames) do one(f,self.db.raid.rangeFade) end
+
+ if inRange == false then frame:SetAlpha(outAlpha) else frame:SetAlpha(1) end
+end
+
+function A:UpdateRange()
+ if not self.db then return end
+ for _, frame in ipairs(self.partyFrames or {}) do
+   UpdateFrameRange(frame, self.db.party, self.db.testMode)
+ end
+ for _, frame in ipairs(self.raidFrames or {}) do
+   UpdateFrameRange(frame, self.db.raid, self.db.testMode)
+ end
 end
 
 function A:InitializeGroups()

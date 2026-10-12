@@ -4,8 +4,8 @@ ComfyFrames=ComfyFrames or {}
 local A=ComfyFrames
 
 A.name=ADDON_NAME or "ComfyFrames"
-A.version="0.3"
-A.buildDate="28.09.2026"
+A.version="0.7"
+A.buildDate="13.10.2026"
 A.status="Beta"
 A.gameVersion="WoW Forever 1.60.1"
 A.interface=16001

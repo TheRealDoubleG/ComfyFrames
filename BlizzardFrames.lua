@@ -1,9 +1,6 @@
 ComfyFrames = ComfyFrames or {}
 local A = ComfyFrames
 
-A.version = "0.5"
-A.buildDate = "04.10.2026"
-
 local function IsInCombat()
     return type(InCombatLockdown) == "function" and InCombatLockdown()
 end
